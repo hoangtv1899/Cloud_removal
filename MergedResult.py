@@ -46,7 +46,7 @@ def Write2Asc_Batch(i):
 	header += "cellsize %.2f\n" % 0.05
 	header += "NODATA_value -99\n"
 	#write header
-	with open('/ssd-scratch/htranvie/Snow_dataset/result_US/SnowUS_'+name+'.asc','w') as fo:
+	with open('result_US/SnowUS_'+name+'.asc','w') as fo:
 		fo.write(header)
 		np.savetxt(fo,arr,fmt='%d')
 
@@ -59,7 +59,7 @@ def Write2Asc(arr, name):
 	header += "cellsize %.2f\n" % 0.05
 	header += "NODATA_value -99\n"
 	#write header
-	with open('/ssd-scratch/htranvie/Snow_dataset/result_US/SnowUS_'+name+'.asc','w') as fo:
+	with open('result_US/SnowUS_'+name+'.asc','w') as fo:
 		fo.write(header)
 		np.savetxt(fo,arr,fmt='%d')
 
@@ -76,7 +76,7 @@ list_len = [len(y) for y in file_list]
 for i,k in enumerate(list_len):
 	print US_labels[i], k
 
-snowUS_list = sorted(glob('/ssd-scratch/htranvie/Snow_dataset/result_US/SnowUS_*.asc'))
+snowUS_list = sorted(glob('result_US/SnowUS_*.asc'))
 snowUS_dates = [x.split('_')[-1].split('.')[0] for x in snowUS_list]
 #list date name
 t_start = datetime(2000,3,10)
@@ -122,7 +122,7 @@ averageSC = pd.DataFrame(columns=['Date','Snow Cover Extent'])
 averageSC['Date'] = snowUS_dates
 PC = []
 for ii in snowUS_dates:
-	arrT0 = np.loadtxt('/ssd-scratch/htranvie/Snow_dataset/result_US/SnowUS_'+ii+'.asc',skiprows=6)
+	arrT0 = np.loadtxt('result_US/SnowUS_'+ii+'.asc',skiprows=6)
 	a0 = arrT0[conus==1]
 	PC.append(np.sum(a0==1)*25)
 
