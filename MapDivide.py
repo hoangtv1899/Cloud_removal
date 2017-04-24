@@ -143,12 +143,6 @@ def MapDivide(GCZ_map, threshold):
 				extra += 1
 		else:
 			RecClus[ru:rl,cl:cr] = jk
-	new_labs0 = np.unique(RecClus)[1:]
-	for ih in new_labs0:
-		rows, cols = np.where(RecClus==ih)
-		[ru, rl, cl, cr] = [np.min(rows), np.max(rows), np.min(cols), np.max(cols)]
-		if np.sum(test1[rows, cols]!=0) < 50:
-			RecClus[rows,cols]=0
 	new_labs = np.unique(RecClus)[1:]
 	new_coords = np.zeros((len(new_labs),4))
 	for kk,lab in enumerate(new_labs):
@@ -172,6 +166,7 @@ def MapDivide(GCZ_map, threshold):
 	m.drawparallels(np.arange(-60.,60.,30.), linewidth=0.25)
 	m.drawmeridians(np.arange(-180.,180.,60.), linewidth=0.25)
 	m.drawcoastlines(linewidth=0.3,color='y')
+	m.drawstates(linewidth=0.2,color='r')
 	for hh in range(new_coords.shape[0]):
 			lats2, lons2 = pixzone2latlon(new_coords[hh,:].tolist())
 			draw_screen_poly(lats2, lons2, m)

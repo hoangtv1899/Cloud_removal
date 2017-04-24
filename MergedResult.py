@@ -1,9 +1,11 @@
 #!/data/apps/enthought_python/2.7.3/bin/python
 
+import os
 import numpy as np
 from GetClimateZone import GetClimateZone
 from MapDivide import MapDivide
 from glob import glob
+from pyhdf.SD import SD, SDC
 import time
 import pandas as pd
 import gdal
@@ -13,6 +15,17 @@ import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 from plotWhole import plotWhole
 import multiprocessing as mp
+
+def latlon2pixzone(xll, yll, dx, dy, lat0,lon0):
+	rl = abs((yll - lat0)/dy)
+	cu = abs((lon0 - xll)/dx)
+	return int(round(rl)), int(round(cu))
+
+def find_err(A):
+	if np.unique(A).tolist() ==[1]:
+		return 1
+	else:
+		return 0
 
 def init1(US_labels1,arr_temp01, name_list1,LabelMap1,mapUS1):
 	global US_labels,arr_temp0, list_full,LabelMap,mapUS
@@ -118,13 +131,63 @@ for file1 in result_file:
 
 #load the CONUS raster
 conus = gdal.Open('data/US_map.tif').ReadAsArray()
+grid_area = gdal.Open('data/US_area_by_grid1.tif').ReadAsArray()
 averageSC = pd.DataFrame(columns=['Date','Snow Cover Extent'])
 averageSC['Date'] = snowUS_dates
 PC = []
 for ii in snowUS_dates:
 	arrT0 = np.loadtxt('result_US/SnowUS_'+ii+'.asc',skiprows=6)
 	a0 = arrT0[conus==1]
-	PC.append(np.sum(a0==1)*25)
+	a1 = grid_area[conus==1]
+	PC.append(np.dot(a0,a1.T))
 
 averageSC['Snow Cover Extent'] = PC
 averageSC.to_csv('averageSC1.csv',index=False,encoding='utf-8')
+
+#Count snowy day in both mModis and Cloud free
+#define header
+header = "ncols     %s\n" % 1336
+header += "nrows    %s\n" % 528
+header += "xllcorner %.2f\n" % -130.75
+header += "yllcorner %.2f\n" % 23.90
+header += "cellsize %.2f\n" % 0.05
+header += "NODATA_value 0\n"
+for yr in range(2001,2018):
+	print yr
+	snowUS_yr = sorted(glob('result_US/SnowUS_'+str(yr)+'*.asc'))
+	os.system('gdalbuildvrt -separate result_US/SnowUS_'+str(yr)+'.vrt '+' '.join(snowUS_yr))
+	snowUS = gdal.Open('result_US/SnowUS_'+str(yr)+'.vrt').ReadAsArray()
+#	os.remove('result_US/SnowUS_'+str(yr)+'.vrt')
+	mModis = np.load('mMODIS/mMODIS_'+str(yr)+'.npy')
+	n,nr,nc = mModis.shape
+	b = []
+	for jk in range(n):
+		b.append(find_err(mModis[jk,:,:]))
+	mModis = mModis[np.asarray(b)==0,:,:]
+	mModis[mModis==1]=0
+	mModis[mModis==2]=1
+	snowUS_count = np.sum(snowUS, axis=0)
+	mModis_count = np.sum(mModis, axis=0)
+	inv = np.logical_and(mModis_count>=1, snowUS_count==0)
+	aa,bb = np.where(inv==1)
+	if aa.size:
+		x1,x2 = np.where(mModis[:,aa,bb]==1)
+		list_err = np.unique(x1).tolist()
+		snowUS_count[inv] = mModis_count[inv]
+		print list_err
+		for jj in list_err:
+			file_err = snowUS_yr[jj]
+			arrS = np.loadtxt(file_err, skiprows=6)
+			arrS[np.logical_and(arrS==0, mModis[jj,:,:]==1)] = 1
+			with open(file_err,'w') as ff:
+				ff.write(header)
+				np.savetxt(ff,arrS,fmt='%d')
+	#write header
+	with open('count/SnowUS_'+str(yr)+'.asc','w') as fo:
+		fo.write(header)
+		np.savetxt(fo,snowUS_count,fmt='%d')
+	# #write header
+	# with open('count/mModis_'+str(yr)+'.asc','w') as fo1:
+		# fo1.write(header)
+		# np.savetxt(fo1,mModis_count,fmt='%d')
+

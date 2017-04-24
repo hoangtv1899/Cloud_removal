@@ -28,7 +28,7 @@ def CloudRemoval(yyyy1,mm1,dd1,labeli):
 	Polar_mini = PolarMap[rl:ru+1,cl:cu+1]
 	dn_start1 = (t_start - t0).days
 	dn_end1 = (t_end - t0).days
-	oyscacldf4i = np.load('/ssd-scratch/htranvie/Snow_dataset/filtered_multiparts/oyscacldf4_'+str(labeli)+'.0.npy')[dn_start1:dn_end1,:,:]
+	oyscacldf4i = np.load('/ssd-scratch/htranvie/Snow_dataset/merged_multiparts/oyscacldf4_'+str(labeli)+'.npy')[dn_start1:dn_end1,:,:]
 	Polar_add = np.logical_and(PolarMap==1, LabelMap==0)[rl:ru+1,cl:cu+1].astype(np.uint8)
 	start_tot = time.time()
 	start = time.time()
@@ -69,4 +69,4 @@ def CloudRemoval(yyyy1,mm1,dd1,labeli):
 	oyscacldfi = oyscacldfi + Polar_add
 	end_tot = time.time()
 	print 'Total time '+str(end_tot-start_tot)+' s'
-	np.save('/ssd-scratch/htranvie/Snow_dataset/results/'+str(labeli)+'/result_'+str(labeli)+'_'+(t_start+timedelta(days=ndays)).strftime('%Y-%m-%d'),oyscacldfi)
+	np.save('/ssd-scratch/htranvie/Snow_dataset/merged_multiparts/26/result_'+str(labeli)+'_'+(t_start+timedelta(days=ndays)).strftime('%Y-%m-%d'),oyscacldfi)
