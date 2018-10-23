@@ -30,14 +30,14 @@ def GetVICoef(c,h,lambda1):
 	print 'finished creating lMatrix'
 	end2 = time.time()
 	print str(end2-end1)+' s'
-#	coef1 = LA.lsmr(lMatrix2,y,damp=1e-3,atol=1e-8,btol=1e-8,maxiter=200)[0]
-	if nStn >= 40000:
-		coef = LA.lsmr(lMatrix,y,damp=1e-3,atol=1e-9,btol=1e-9,maxiter=500)[0]
-	else:
-		if LA.cond(lMatrix) < 1/sys.float_info_epsilon:
-			coef = np.linalg.solve(lMatrix,y)
-		else:
-			coef = np.zeros(y.size)
+	coef1 = LA.minres(lMatrix2,y,tol=1e-8,maxiter=1000)[0]
+#	if nStn >= 40000:
+#		coef = LA.lsmr(lMatrix,y,damp=1e-3,atol=1e-9,btol=1e-9,maxiter=500)[0]
+#	else:
+#		if LA.cond(lMatrix) < 1/sys.float_info_epsilon:
+#			coef = np.linalg.solve(lMatrix,y)
+#		else:
+#			coef = np.zeros(y.size)
 	print 'finished calculating coef'
 	end3 = time.time()
 	print str(end3-end2)+' s'
